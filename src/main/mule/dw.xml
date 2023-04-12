@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="b76b1878-00c4-4576-966a-07ad490aa09d" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<flow name="dwFlow" doc:id="c6bd1ff1-e0b4-4b82-af08-a8228ed9427d" >
+		<http:listener doc:name="Listener" doc:id="1ef74312-4246-4f0e-9da9-7572bc8c939d" config-ref="HTTP_Listener_config" path="/dw"/>
+		<ee:transform doc:name="Transform Message" doc:id="14abe240-21c7-410e-a3d5-9ab2d32c3e7e">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+var a= {
+    "message": "Hello world!",
+    "status":"active"
+}
+fun detail(pay) = {
+    "msg": pay.message ,
+    "status":"it is " ++ pay.status
+}
+---
+{
+"function":detail(a) ,
+"map":[1,2,"a"] map ((item, index) -> {
+    index : item ,
+    (index):item 
+}) ,
+"pluck": a pluck ((value, key, index) -> {
+    (key):value
+})
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="dwFlow1" doc:id="2614a2ac-8ec6-4cfc-8d5b-95be5c2f38da" >
+		<http:listener doc:name="Listener" doc:id="a0f2efe7-c4c7-41b8-ad30-333845c66b4f" config-ref="HTTP_Listener_config" path="/dw1"/>
+		<ee:transform doc:name="Transform Message" doc:id="4a67ff03-d9a4-49e8-b4bb-2f8eb2c18431">
+			<ee:message>
+				<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+import * from module::custom_function
+---
+userData("yathendra") ++ 
+{
+	"Country":country("US")
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="dwFlow2" doc:id="661a4784-df1e-464e-af5e-bf9cb07b422d" >
+		<http:listener doc:name="Listener" doc:id="2d081574-4894-4afd-bab5-3542e4618ba8" config-ref="HTTP_Listener_config" path="/dw2"/>
+		<ee:transform doc:name="Transform Message" doc:id="2c440ba8-f130-4a19-aaa6-8c1d00bdbd17" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var a = [{"a":"hello"},{"b":"hi"},{"c":"namaste"}] 
+var b = [{"d":"vanakkam"},{"b":"AAdhab"},{"c":"namaskaar"}]
+---
+flatten(a ++ b)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>
